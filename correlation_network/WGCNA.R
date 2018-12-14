@@ -58,18 +58,6 @@ library(edgeR)
 isexpr = rowSums(cpm(counts) > 10) >= 0.5 * ncol(counts)
 counts = counts[isexpr, ] #filter for expressed genes
 
-#filter genes with low central tendency i.e. consistently low median expression, likely to represent noise
-##see spread of expression
-#expr_median = apply(counts, 1, median)
-#hist(expr_median)
-#plot(expr_median) #still a lot of genes with a median of zero
-#library(DGCA)
-#library(matrixStats)
-#counts = filterGenes(counts,
-#                     filterTypes = "central",
-#                     filterCentralType = "median",
-#                     filterCentralPercentile = 0.25) #filter to 11418 genes
-
 #normalisation using variance stabilising transformation as recommended by WGCNA authors
 library(DESeq2)
 vsd = vst(as.matrix(counts), blind = FALSE)
@@ -173,7 +161,7 @@ for (i in 1:length(unique(dynamicColors))){
 dev.off()
 
 
-#merge modules whose expression are very similar (too many modules!)
+#merge modules whose expression are very similar
 
 ##merge highly coexpressed modules by calculating eigengenes and clustering them on their correlation
 MEDiss = 1 - cor(MEs) #calculate dissimilarity of module eigengenes
@@ -190,8 +178,14 @@ abline(h = MEDissThres, col = "red")
 merge = mergeCloseModules(batch_cor, dynamicColors, cutHeight = MEDissThres, verbose = 3)
 mergedColors = merge$colors
 mergedMEs = merge$newMEs
+geneTreeMerge = merge$dendro
 
 ##plot merged results
+pdf("merged_module_cluster.pdf")
+plot(geneTreeMerge, main = "Clustering of module eigengenes",
+     xlab = "", sub = "")
+dev.off()
+
 pdf("merged_cluster_dendogram.pdf", width = 10)
 plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
                     c("Dynamic Tree Cut", "Merged dynamic"),
@@ -212,18 +206,52 @@ for (i in 1:length(unique(mergedColors))){
           names.arg = rownames(batch_cor), cex.names=0.75)}
 dev.off()
 
-#calculate gene information
-##prepare data
-datExpr = as.data.frame(batch_cor) #put as data frame
-nGenes = ncol(datExpr) #no. of genes
-nSamples = nrow(datExpr) #no. of samples
-modNames = substring(names(MEs), 3) #module names
-
-##calculate gene module membership
-geneModuleMembership = as.data.frame(cor(datExpr, MEs, use = "p")) #gene module membership
+#calculate gene module membership
+geneModuleMembership = as.data.frame(cor(datExpr, mergedMEs, use = "p")) #gene module membership
 MMPvalue = as.data.frame(corPvalueStudent(as.matrix(geneModuleMembership), nSamples)) #gene module membership p value
 names(geneModuleMembership) = paste("MM", modNames, sep = "") #label
 names(MMPvalue) = paste("p.MM", modNames, sep = "") #label
+
+#relating modules to external clinical traits
+##define numbers of genes and samples
+datExpr = as.data.frame(batch_cor) #put as data frame
+nGenes = ncol(datExpr) #no. of genes
+nSamples = nrow(datExpr) #no. of samples
+modNames = substring(names(mergedMEs), 3) #module names
+mergedMEs2 = orderMEs(mergedMEs) #ordered
+
+##create data frame of disease status
+datTraits = as.data.frame(rownames(datExpr))
+datTraitsDEPE = data.frame(bla = substring(datTraits[1:22,1], 8))
+datTraitsBLC = data.frame(bla = substring(datTraits[23:34,1], 9))
+datTraits = rbind(datTraitsDEPE, datTraitsBLC)
+datTraits[,1] = gsub("EX1", "0", datTraits[,1]) #binary classification: WT = 0, MODY = 1
+datTraits[,1] = gsub("SB", "0", datTraits[,1])
+datTraits[,1] = gsub("03A", "1", datTraits[,1])
+datTraits[,1] = gsub("04A", "1", datTraits[,1])
+rownames(datTraits) = c() #no rownames for plot later on
+
+##calculate correlation with MODY
+moduleTraitCor = cor(mergedMEs2, (as.numeric(datTraits$bla)), use = "p") #pearson correlation of ME with MODY
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples)
+textMatrix = paste(signif(moduleTraitCor, 2), "\n(",
+                   signif(moduleTraitPvalue, 1), ")", sep = "")
+dim(textMatrix) = dim(moduleTraitCor)
+
+##plot
+pdf("moduleTraitRelationships.pdf", width = 10, height = 10)
+labeledHeatmap(Matrix = moduleTraitCor,
+               xLabels = "",
+               yLabels = names(mergedMEs2),
+               ySymbols = names(mergedMEs2),
+               colorLabels = FALSE,
+               colors = blueWhiteRed(50),
+               textMatrix = textMatrix,
+               setStdMargins = FALSE,
+               cex.text = 0.5,
+               zlim = c(-1,1),
+               main = paste("Module-trait relationships"))
+dev.off()
 
 
 #import gene information
@@ -245,10 +273,65 @@ write.csv(geneInfo, file = "geneInfo.csv")
 #                      paste("p.MM", modNames, sep = ""))
 #} #to import module membership for each gene
 
+#analyse hub genes
+##put in right format
+nSets = 1
+setLabels = c("HNF4A")
+multiExpr = vector(mode = "list", length = nSets)
+multiExpr[[1]] = list(data = as.data.frame(batch_cor))
+names(multiExpr[[1]]$data) = colnames(batch_cor)
+rownames(multiExpr[[1]]$data) = rownames(batch_cor)
+checkSets(multiExpr, checkStructure = TRUE)
 
-##inspect
-geneInfo[which(geneInfo$geneSymbol == "HNF4A"), ] #HNF4A is in blue module
-geneInfo[which(geneInfo$geneSymbol == "HNF1A"), ] #HNF1A is in blue module
+##calculate gene significance
+GS1 = as.numeric(cor(batch_cor, as.numeric(datTraits$bla), use = "p"))
+GeneSignificance = abs(GS1)
+
+##plot
+alldegrees1 = intramodularConnectivity(adj, mergedColors) #calculate the intramodular connectivity for each gene
+colorlevels = unique(mergedColors)
+sizeGrWindow(9, 6)
+par(mfrow = c(2, as.integer(0.5 + length(colorlevels) / 2)))
+par(mar = c(4,5,3,1))
+pdf("temp.pdf")
+for (i in c(1:length(colorlevels))) {
+  which.module = colorlevels[[i]];
+  restrict1 = (mergedColors == which.module);
+  verboseScatterplot(alldegrees1$kWithin[restrict1],
+                     GeneSignificance[restrict1], col = mergedColors[restrict1],
+                     main = which.module,
+                     xlab = "Connectivity", ylab = "Gene Significance", abline = TRUE)
+}
+dev.off()
+
+##filter for hub genes
+datKME = signedKME(batch_cor, mergedMEs, outputColumnName = "MM.") #calcular module membership
+filterGenes = abs(GS1) > 0.20 & abs(datKME$MM.violet) > 0.95
+table(filterGenes)
+string = dimnames(data.frame(datExpr))[[2]][filterGenes]
+string = annot[which(annot$GeneID %in% string), 2]
+string
+write.table(string, "hubGenes_violet_GS20_KME95.txt", quote = F, sep = "\t", row.names = FALSE, col.names = FALSE)
+
+#export to Cytoscape to visualise
+##select module genes
+modules = c("violet")
+probes = names(datExpr)
+inModule = is.finite(match(dynamicColors, modules))
+modProbes = probes[inModule]
+modGenes = annot$GeneName[match(modProbes, annot$GeneID)]
+
+##select corresponding TOM
+modTOM = TOM[inModule, inModule]
+dimnames(modTOM) = list(modProbes, modProbes)
+cyt = exportNetworkToCytoscape(modTOM,
+                               edgeFile = paste("CytoscapeInput-edges-20", paste(modules, collapse="-"), ".txt", sep=""),
+                               nodeFile = paste("CytoscapeInput-nodes-20", paste(modules, collapse="-"), ".txt", sep=""),
+                               weighted = TRUE,
+                               threshold = 0.2, #very high threshold because too many genes (chosen from barplot above)
+                               nodeNames = modProbes,
+                               altNodeNames = modGenes,
+                               nodeAttr = dynamicColors[inModule])
 
 
 save(MEs, mergedMEs, dynamicColors, mergedColors, geneTree,
