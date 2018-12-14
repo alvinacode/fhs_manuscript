@@ -345,34 +345,25 @@ options(stringsAsFactors = FALSE)
 library("anRichment")
 
 #data prep
-data = read.csv("~/OneDrive/Oxford/summer_internship/wgcna/geneInfo.csv", header = TRUE, rownames = 1)
+data = read.csv("~/OneDrive/Oxford/summer_internship/wgcna/geneInfo.csv", header = TRUE, row.names = 1)
 moduleColor = data$moduleColor
-entrez = convert2entrez(organism = "human", symbol = data$GeneName) #convert to entrez
+entrez = convert2entrez(organism = "human", symbol = data$geneSymbol) #convert to entrez
 table(is.finite(entrez)) #how many conversions are successful?
 
 #make reference collection (GO and NCBI biosystems collection)
-GOcollection = buildGOcollection(organism = "human")
-biosysCollection = BioSystemsCollection("human") #KEGG, REACTOME, BIOCYC and Lipid Maps
-combinedCollection = mergeCollections(GOcollection, biosysCollection)
+load("~/OneDrive/oxford/summer_internship/wgcna/combinedCollection_GOBPonly.RData")
 
-#one-by-one analysis of interesting modules
-active = entrez[moduleColor == "blue"]
-all = entrez
+GOenrichment = enrichmentAnalysis(classLabels = moduleColor,
+                                  identifiers = entrez,
+                                  refCollection = combinedCollection,
+                                  useBackground = "given",
+                                  threshold = 0.05,
+                                  nBestDataSets = 50,
+                                  thresholdType = "Bonferroni",
+                                  getOverlapEntrez = TRUE,
+                                  getOverlapSymbols = TRUE,
+                                  ignoreLabels = "grey")
+collectGarbage()
 
-GOenrichment_blue = enrichmentAnalysis(active = active,
-                                       inactive = all,
-                                       refCollection = combinedCollection,
-                                       useBackground = "intersection",
-                                       threshold = 0.01,
-                                       thresholdType = "Bonferroni")
-
-
-##explore results
-summary = GOenrichment_blue$enrichmentTable
-summary$overlapGenes = shortenStrings(summary$overlapGenes, maxLength = 70, split = "|");
-head(summary)
-
-#export
-write.csv(summary$enrichmentTable, file = "wgcna_GOenrichmentTable_blue.csv",
-          row.names = FALSE)
+write.csv(GOenrichment$enrichmentTable, file = "GOenrichment-enrichmentTable.csv", row.names = FALSE)
 ###################################################
