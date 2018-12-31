@@ -55,7 +55,7 @@ colData = read.delim("~/OneDrive/oxford/summer_internship/deseq2/colData.txt", r
 
 #filter out genes with no expression
 library(edgeR)
-isexpr = rowSums(cpm(counts) > 10) >= 0.5 * ncol(counts)
+isexpr = rowSums(cpm(counts) > 1) >= 0.5 * ncol(counts)
 counts = counts[isexpr, ] #filter for expressed genes
 
 #normalisation using variance stabilising transformation as recommended by WGCNA authors
