@@ -3,6 +3,10 @@ library(dplyr)
 library(ggplot2)
 library(ggsci) # graph pallete 
 
+###################################################################
+# All differentiation stages & multiple experiments (Fig 2A)
+###################################################################
+
 #count matrix of all genes
 ##Marta (published Perez-Alcantara (2018). All WT clones)
 marta <- read.delim("~/OneDrive/oxford/summer_internship/counts/marta.gene.counts.tsv", header = TRUE, row.names = 1, check.names = FALSE)
@@ -290,6 +294,95 @@ p <- ggplot(pca_plot,
         axis.text.y=element_text(colour="black"),
         axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
 
-pdf("pca.hnf4a.manuscript.pdf")
+pdf("pca.rna.seq.allDev.pdf", width = 10)
 plot(p)
 dev.off()
+###################################################################
+
+###################################################################
+# For each differentiation stage
+###################################################################
+library(DESeq2)
+library(sva)
+
+hnf4a = order_by_stages.hnf4a(hnf4a) # order by stages again
+de = hnf4a[,1:11]
+pe = hnf4a[,12:23]
+pe = pe[,-9] # remove outlier
+blc = hnf4a[,24:35]
+counts_list = list(de = de,
+                   pe = pe, 
+                   blc = blc)
+
+#design
+differentiation = substr(names(hnf4a), 1, 5)
+de_diff = differentiation[1:11]
+pe_diff = differentiation[12:22]
+blc_diff = differentiation[23:34]
+
+de_cell.line = c(rep("SB", 3), rep("EX1", 3), rep("03A", 2), rep("04A", 3))
+pe_cell.line = c(rep("SB", 3), rep("EX1", 3), rep("03A", 2), rep("04A", 3))
+blc_cell.line = c(rep("SB", 3), rep("EX1", 3), rep("03A", 3), rep("04A", 3))
+
+de_des = data.frame(differentiation = de_diff,
+                    cell.line = de_cell.line)
+pe_des = data.frame(differentiation = pe_diff,
+                    cell.line = pe_cell.line)
+blc_des = data.frame(differentiation = blc_diff,
+                     cell.line = blc_cell.line)
+
+design_list = list(de = de_des,
+                   pe = pe_des,
+                   blc = blc_des)
+
+# normalisation, batch correction, pc
+corr_vst = list()
+pca = list()
+for(i in 1:3) {
+  # variance stabilising transformation
+  vst = vst(as.matrix(counts_list[[i]]), blind =  FALSE) 
+  
+  # batch correction 
+  batch = design_list[[i]]$differentiation
+  modcombat <- model.matrix(~1, data = design_list[[i]])
+  combat_mydata = ComBat(dat = vst,
+                         batch = batch, 
+                         mod = modcombat,
+                         par.prior = TRUE,
+                         prior.plots = FALSE) 
+  
+  # store 
+  corr_vst[[i]] = combat_mydata
+  
+  # pca 
+  pca[[i]] = prcomp(t(corr_vst[[i]]))
+  
+}
+
+# get plot data
+pca_out = list()
+percentage = list()
+all = list()
+for(i in 1:3) {
+  pca_out[[i]] = as.data.frame(pca[[i]]$x)
+  percentage[[i]] = round(pca[[i]]$sdev^2 / sum(pca[[i]]$sdev^2) * 100, 2)
+  percentage[[i]] = paste( colnames(pca_out[[i]]), "(", paste( as.character(percentage[[i]]), "%", ")", sep="") )
+  all[[i]] = cbind(design_list[[i]], pca_out[[i]])
+}
+
+# plot 
+plot = list()
+pdf("pca.rna.seq.eachDev.pdf")
+for(i in 1:3) {
+  plot[[i]] = ggplot(all[[i]], aes(PC1, PC2, colour = differentiation, shape = cell.line)) +
+          geom_point(size=5) +
+          scale_shape_manual(values=c(0, 1, 17, 18)) +
+          scale_color_simpsons() +
+          theme +
+          xlab(percentage[1]) +
+          ylab(percentage[2]) + 
+          coord_fixed()
+  plot(plot[[i]])
+}
+dev.off()
+
