@@ -265,14 +265,19 @@ percentage <- paste(colnames(pca_out), "(", paste( as.character(percentage), "%"
 pca_plot <- as.data.frame(cbind(pca_out, stages, samples, study))
 
 # remove unwanted samples after calculating pcs (for FHS write up)
+#pca_plot = subset(pca_plot, !(pca_plot$study == "HNF1A"), drop = TRUE)
+#pca_plot = subset(pca_plot, !(pca_plot$study == "Katia"), drop = TRUE)
+#pca_plot = subset(pca_plot, !(pca_plot$study == "Xie" & pca_plot$stages %in% c("ES","DE","GT","PF","PE","Late PE","Polyhormonal")), drop = TRUE)
 #pca_plot = pca_plot[which(!(pca_plot$study == "HNF1A")),]
 #pca_plot = pca_plot[which(!(pca_plot$study == "Katia")),]
 #pca_plot = pca_plot[which(!(pca_plot$study == "Xie" & pca_plot$stages %in% c("ES","DE","GT","PF","PE","Late PE","Polyhormonal"))),]
-pca_plot <- filter(pca_plot, pca_plot$stages %in% c("iPSC", "DE", "PGT", "PFG", "PE", "EP", "EN", "BLC", "matured_in_vivo"))
-pca_plot <- filter(pca_plot, pca_plot$study %in% c("HNF4A", "Perez-Alcantara", "Xie", "Benvenisty"))
+
+some.stages <- filter(pca_plot, stages %in% c("iPSC", "DE", "PGT", "PFG", "PE", "EP", "EN", "BLC", "matured_in_vivo"))
+some.stages <- filter(some.stages, !(study == "Xie" & stages %in% c("DE", "EN", "EP", "iPSC", "PE", "PFG", "BLC", "PGT")))
+some.stages2 = filter(some.stages, study %in% c("HNF4A", "Perez-Alcantara", "Xie", "Benvenisty"))
 
 # order stages for plot 
-pca_plot$stages <- factor(pca_plot$stages, 
+some.stages2$stages <- factor(some.stages2$stages, 
                           levels = c("iPSC", "DE", "PGT", "PFG", "EP", "PE", "EN", "BLC", "matured_in_vivo"))
 
 # simpson's palette but change colours that look too similar
@@ -281,7 +286,7 @@ simpsons = c("#FED439FF", "#709AE1FF", "#8A9197FF",
              "#46732EFF", "#71D0F5FF")
 
 # plot 
-p <- ggplot(pca_plot,
+p <- ggplot(some.stages2,
             aes(x = PC1, y = PC2, color = stages, shape = study)) +
   geom_point(size = 3, aes(fill = stages), stroke = 1) +
   scale_shape_manual(values = c(15, 16, 17, 18, 7, 6)) +
