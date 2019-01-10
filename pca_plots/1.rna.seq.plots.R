@@ -371,7 +371,7 @@ for(i in 1:3) {
 }
 
 # plot 
-pdf("pca.rna.seq.eachDev.pdf")
+pdf("pca.rna.seq.eachDev.pdf", width = 5, height = 5)
 for(i in 1:3) {
   print(ggplot(all[[i]], aes(PC1, PC2, colour = differentiation, shape = cell.line)) +
           geom_point(size=5) +
@@ -383,4 +383,5 @@ for(i in 1:3) {
           coord_fixed())
 }
 dev.off()
+
 ###################################################################
