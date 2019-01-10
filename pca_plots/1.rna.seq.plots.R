@@ -300,7 +300,7 @@ dev.off()
 ###################################################################
 
 ###################################################################
-# For each differentiation stage
+# For each differentiation stage (Figure 2B)
 ###################################################################
 library(DESeq2)
 library(sva)
@@ -371,18 +371,16 @@ for(i in 1:3) {
 }
 
 # plot 
-plot = list()
 pdf("pca.rna.seq.eachDev.pdf")
 for(i in 1:3) {
-  plot[[i]] = ggplot(all[[i]], aes(PC1, PC2, colour = differentiation, shape = cell.line)) +
+  print(ggplot(all[[i]], aes(PC1, PC2, colour = differentiation, shape = cell.line)) +
           geom_point(size=5) +
           scale_shape_manual(values=c(0, 1, 17, 18)) +
           scale_color_simpsons() +
           theme +
           xlab(percentage[1]) +
           ylab(percentage[2]) + 
-          coord_fixed()
-  plot(plot[[i]])
+          coord_fixed())
 }
 dev.off()
-
+###################################################################
