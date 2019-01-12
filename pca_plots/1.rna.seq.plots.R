@@ -297,7 +297,9 @@ p <- ggplot(some.stages2,
         panel.grid.major = element_blank(),panel.grid.minor = element_blank(),
         strip.background=element_blank(),axis.text.x=element_text(colour="black"),
         axis.text.y=element_text(colour="black"),
-        axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"))
+        axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"),
+        legend.title=element_text(size=15), 
+        legend.text=element_text(size=12))
 
 pdf("pca.rna.seq.allDev.pdf", width = 10)
 plot(p)
@@ -374,6 +376,14 @@ for(i in 1:3) {
   percentage[[i]] = paste( colnames(pca_out[[i]]), "(", paste( as.character(percentage[[i]]), "%", ")", sep="") )
   all[[i]] = cbind(design_list[[i]], pca_out[[i]])
 }
+
+theme = theme(panel.background = element_blank(),panel.border=element_rect(fill=NA),
+              panel.grid.major = element_blank(),panel.grid.minor = element_blank(),
+              strip.background=element_blank(),axis.text.x=element_text(colour="black"),
+              axis.text.y=element_text(colour="black"),
+              axis.ticks=element_line(colour="black"),plot.margin=unit(c(1,1,1,1),"line"),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=12))
 
 # plot 
 pdf("pca.rna.seq.eachDev.pdf", width = 5, height = 5)
