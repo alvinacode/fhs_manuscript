@@ -2,7 +2,7 @@
 
 This is a repository of codes used in analysis of RNA-seq and ATAC-seq data for Final Honors School Part II (Cells and Systems Biology) 
 
-## Order of analysis 
+## Order of Analysis 
 
 1. Principal Component Analysis 
 
