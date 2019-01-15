@@ -5,11 +5,19 @@
 # c = failure in population/ max failure (no. of black balls in the urn)
 # d = sample size (no. of balls drawn from the urn)
 
-
-# testing for enrichment of PE DEG (not necessarily HNF4A motif-bearing genes) in brown4
+# BROWN4
+# testing for enrichment of PE DEG (all, not necessarily HNF4A motif-bearing genes) in brown4
 
 a = 99 # 99 genes overlap
 b = 1351 # 1351 DEG
 c = 16283 - 1351 # 16283 genes tested for DEG 
-d = 321 # 321 genes in brown4 module
-phyper(a, b, c, d, lower.tail = FALSE) # 7.302569e-33
+d = 320 # 320 genes in brown4 module
+phyper(a, b, c, d, lower.tail = FALSE) # 5.449458e-33
+
+# testing for enrichment of BLC DEG (all) in brown4
+
+a = 32 
+b = 1582
+c = 16961 - 1582
+d = 320 
+phyper(a, b, c, d, lower.tail = FALSE) # 0.2969183
