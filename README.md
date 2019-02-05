@@ -9,9 +9,9 @@ This is a repository of codes used in analysis of RNA-seq data for Final Honors 
 
 2. Differential Expression Analysis: <b> differential_expression </b>
 
-  2.1. Differential Analysis 
+    - Differential Analysis 
 
-  2.2. Gene Ontology Enrichment Analysis 
+    - Gene Ontology Enrichment Analysis 
 
 
 3. Weighted Correlation Network Analysis: <b> correlation_network </b>
