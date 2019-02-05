@@ -16,18 +16,18 @@ This is a repository of codes used in analysis of RNA-seq data for Final Honors 
 
 3. Weighted Correlation Network Analysis: <b> correlation_network </b>
 
-  3.1. WGCNA 
+    - WGCNA 
 
-  3.2. Gene Ontology Enrichment Analysis
+    - Gene Ontology Enrichment Analysis
 
-  3.3. Hypergeometric Analysis 
+    - Hypergeometric Analysis 
 
 
 4. Others: <b> miscellaneous </b>
 
-  4.1. HNF4A Motif Occurrence (FIMO) 
+    - HNF4A Motif Occurrence (FIMO) 
 
-  4.2. Motif Enrichment Analysis (HOMER)
+    - Motif Enrichment Analysis (HOMER)
 
 
 5. Unused in Manuscript: <b> differential_coexpression </b>
