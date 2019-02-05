@@ -1,6 +1,6 @@
 # FHS Project 2018-2019
 
-This is a repository of codes used in analysis of RNA-seq and ATAC-seq data for Final Honors School Part II (Cells and Systems Biology) Project Dissertation
+This is a repository of codes used in analysis of RNA-seq data for Final Honors School Part II (Cells and Systems Biology) Project Dissertation
 
 ## Order of Analysis 
 
