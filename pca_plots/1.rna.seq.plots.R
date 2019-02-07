@@ -278,7 +278,7 @@ some.stages2 = filter(some.stages, study %in% c("HNF4A", "Perez-Alcantara", "Xie
 
 # order stages for plot 
 some.stages2$stages <- factor(some.stages2$stages, 
-                          levels = c("iPSC", "DE", "PGT", "PFG", "EP", "PE", "EN", "BLC", "matured_in_vivo"))
+                          levels = c("iPSC", "DE", "PGT", "PFG", "PE", "EP", "EN", "BLC", "matured_in_vivo"))
 
 # simpson's palette but change colours that look too similar
 simpsons = c("#FED439FF", "#709AE1FF", "#8A9197FF",
