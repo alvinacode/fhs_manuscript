@@ -1,5 +1,8 @@
 # see if downregulated/ upregulated genes are enriched with markers of specific cell types 
 
+library(ggplot2)
+library(ggsci)
+
 # list of gene marker sources
 pp = read.delim("gene_markers/TEAD_YAP.500genes.txt", header = FALSE) # pancreatic progenitors (Cebola, 2015)
 pop.a = read.delim("gene_markers/Ramond2018.popA.txt", header = FALSE) # pancreatic progenitors (Ramond, 2018)
@@ -107,4 +110,23 @@ for(i in 1:dim(up.res)[1]) { # row
       up.hypergeo[3,j] = phyper(a, b, c, d, lower.tail = FALSE)
     }
   }
-}E
+}
+
+# visualise log2fc of gene markers 
+pe.deg = transform(pe.deg, GeneSymbol = reorder(GeneSymbol, -logFC)) # reorder
+plot.data = pe.deg[pe.deg$GeneSymbol %in% pop.c$V1, c(2,4)]
+
+p = ggplot(plot.data, aes(x = GeneSymbol, y = logFC)) + 
+  geom_bar(stat = "identity", aes(fill = logFC < 0)) +
+  coord_flip() +
+  scale_fill_manual(guide = FALSE, breaks = c(TRUE, FALSE), values = c("#709AE1FF", "#FED439FF")) +
+  theme(panel.background = element_blank(), panel.border=element_rect(fill = NA),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        strip.background = element_blank(), axis.text.x = element_text(colour = "black"),
+        axis.text.y = element_text(colour = "black"),
+        axis.ticks = element_line(colour = "black"), plot.margin = unit(c(1,1,1,1), "line"))
+
+pdf("neurog3+_markers_pe.pdf")
+plot(p)
+dev.off()
+
