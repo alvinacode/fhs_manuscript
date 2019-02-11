@@ -126,7 +126,17 @@ p = ggplot(plot.data, aes(x = GeneSymbol, y = logFC)) +
         axis.text.y = element_text(colour = "black"),
         axis.ticks = element_line(colour = "black"), plot.margin = unit(c(1,1,1,1), "line"))
 
-pdf("neurog3+_markers_pe.pdf")
+p = ggplot(plot.data, aes(x = GeneSymbol, y = logFC)) + 
+  geom_bar(stat = "identity", aes(fill = logFC < 0)) +
+  scale_fill_manual(guide = FALSE, breaks = c(TRUE, FALSE), values = c("#709AE1FF", "#FED439FF")) +
+  theme(panel.background = element_blank(), panel.border=element_rect(fill = NA),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        strip.background = element_blank(), axis.text.x = element_text(colour = "black"),
+        axis.text.y = element_text(colour = "black"),
+        axis.ticks = element_line(colour = "black"), plot.margin = unit(c(1,1,1,1), "line")) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+pdf("neurog3+_markers_pe.09022019.pdf", height = 3, width = 6)
 plot(p)
 dev.off()
 
