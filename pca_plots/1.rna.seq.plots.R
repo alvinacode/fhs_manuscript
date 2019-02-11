@@ -1,4 +1,5 @@
 library(edgeR)
+library(limma)
 library(dplyr)
 library(ggplot2)
 library(ggsci) # graph pallete 
@@ -219,7 +220,7 @@ stages <- c(rep("DE", 3), rep("PE", 3), rep("BLC",3),
             rep(katia.stage[1:6], 1),
             rep(katia.stage, 2),
             rep(marta.stage2, each = 3),
-            c("iPSC", "EP", "EP", "PGT", "undifferentiated"),
+            c("iPSC", "EP", "EP", "PGT", "iPSC"),
             rep(Xie_stages[1:5], 3),
             rep(Xie_stages[6], 3),
             rep(Xie_stages[7], 3),
