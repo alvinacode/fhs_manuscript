@@ -79,20 +79,6 @@ count_list = list(de = as.matrix(de),
                   blc = as.matrix(blc))
 
 # put together sample info
-
-metadata = list(de = data.frame(Experiment = character(),
-                                CellLine = character(),
-                                Donor = character(),
-                                Disease = character()),
-                pe = data.frame(Experiment = character(),
-                                CellLine = character(),
-                                Donor = character(),
-                                Disease = character()),
-                blc = data.frame(Experiment = character(),
-                                 CellLine = character(),
-                                 Donor = character(),
-                                 Disease = character()))
-
 metadata = list()
 for(i in 1:3) {
   Experiment = substr(colnames(count_list[[i]]), 1, 5)
@@ -111,8 +97,10 @@ names(metadata) = c("de", "pe", "blc")
 metadata$blc$CellLine = as.character(metadata$blc$CellLine)
 metadata$blc$CellLine = substr(metadata$blc$CellLine, 2, nchar(metadata$blc$CellLine))
 
+metadata$blc$Donor = as.character(metadata$blc$Donor)
 metadata$blc$Donor = substr(metadata$blc$Donor, 2, nchar(metadata$blc$Donor))
 
+metadata$blc$Disease = as.character(metadata$blc$Disease)
 metadata$blc$Disease = substr(metadata$blc$Disease, 2, nchar(metadata$blc$Disease))
 
 
